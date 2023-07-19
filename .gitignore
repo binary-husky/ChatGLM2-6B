@@ -1,0 +1,5 @@
+ptuning/output
+ptuning/real_chatglm_model
+ptuning/transformers
+ptuning/real_chatglm_model_c/pytorch_model*
+*.pyc

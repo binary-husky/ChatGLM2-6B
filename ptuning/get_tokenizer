@@ -1,0 +1,4 @@
+
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained('/home/hmp/ChatGLM2-6B/ptuning/real_chatglm_model', trust_remote_code=True)

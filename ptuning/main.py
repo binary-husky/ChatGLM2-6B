@@ -112,7 +112,7 @@ def main():
     if model_args.ptuning_checkpoint is not None:
         # Evaluation
         # Loading extra state dict of prefix encoder
-        model = AutoModel.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True, cache_dir=False)
         prefix_state_dict = torch.load(os.path.join(model_args.ptuning_checkpoint, "pytorch_model.bin"))
         new_prefix_state_dict = {}
         for k, v in prefix_state_dict.items():
@@ -120,7 +120,7 @@ def main():
                 new_prefix_state_dict[k[len("transformer.prefix_encoder."):]] = v
         model.transformer.prefix_encoder.load_state_dict(new_prefix_state_dict)
     else:
-        model = AutoModel.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_args.model_name_or_path, config=config, trust_remote_code=True, cache_dir=False)
 
     if model_args.quantization_bit is not None:
         print(f"Quantized to {model_args.quantization_bit} bit")
@@ -177,7 +177,7 @@ def main():
 
         return model_inputs
 
-    def preprocess_function_train(examples):
+    def preprocess_function_train(examples):    # 将数据集转化为token
         max_seq_length = data_args.max_source_length + data_args.max_target_length + 1
 
         model_inputs = {
@@ -286,6 +286,20 @@ def main():
 
     # Metric
     def compute_metrics(eval_preds):
+        """
+        这段代码定义了一个名为compute_metrics的函数，该函数接受一个eval_preds参数。
+        首先，函数将eval_preds解包为preds和labels两个变量。
+        接下来，如果preds是一个元组，将其赋值为元组的第一个元素preds[0]。
+        然后，使用tokenizer对象对preds进行批量解码，得到decoded_preds，并跳过特殊标记。
+        如果data_args.ignore_pad_token_for_loss为真，则将labels中的-100替换为tokenizer.pad_token_id。然后，使用tokenizer对象对labels进行批量解码，得到decoded_labels，并跳过特殊标记。
+        接下来，创建了一个名为score_dict的字典，其中包含了"rouge-1"、"rouge-2"、"rouge-l"和"bleu-4"这四个指标。
+        然后，通过迭代decoded_preds和decoded_labels，将每个预测值和标签分别进行分词，并使用Rouge库计算Rouge指标得分。将计算结果存储在result中。
+        然后，将result中的每个指标得分（"rouge-1"、"rouge-2"、"rouge-l"）乘以100，保留四位小数，并添加到score_dict相应指标的值列表中。
+        接下来，使用nltk库中的sentence_bleu函数计算BLEU-4指标得分，并将结果乘以100，保留四位小数，添加到score_dict["bleu-4"]的值列表中。
+        然后，对于score_dict中的每个指标，取其值列表的平均值，并将其转换为浮点数。
+        最后，返回score_dict作为函数的结果。
+        总体来说，这段代码的作用是计算给定预测结果和标签的Rouge和BLEU指标得分，以字典形式返回。
+        """
         preds, labels = eval_preds
         if isinstance(preds, tuple):
             preds = preds[0]

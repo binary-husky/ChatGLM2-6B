@@ -1,13 +1,20 @@
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, PretrainedConfig
 import gradio as gr
 import mdtex2html
 from utils import load_model_on_gpus
 
-tokenizer = AutoTokenizer.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True)
-model = AutoModel.from_pretrained("THUDM/chatglm2-6b", trust_remote_code=True).cuda()
-# 多显卡支持，使用下面两行代替上面一行，将num_gpus改为你实际的显卡数量
-# from utils import load_model_on_gpus
-# model = load_model_on_gpus("THUDM/chatglm2-6b", num_gpus=2)
+cache_dir = "/home/hmp/ChatGLM2-6B/ptuning/real_chatglm_model_c"
+# tokenizer = AutoTokenizer.from_pretrained(cache_dir, trust_remote_code=True)
+
+# vocab_file = '/home/hmp/ChatGLM2-6B/ptuning/real_chatglm_model_c/tokenizer.model'
+# kwargs = {'name_or_path': '/home/hmp/ChatGLM2-6B/ptuning/real_chatglm_model_c', 'remove_space': False, 'do_lower_case': False, 'auto_map': {'AutoTokenizer': ['tokenization_chatglm.ChatGLMTokenizer', None]}, 'special_tokens_map_file': None}
+from ptuning.real_chatglm_model_c.tokenization_chatglm import ChatGLMTokenizer
+from ptuning.real_chatglm_model_c.modeling_chatglm import ChatGLMForConditionalGeneration
+from ptuning.real_chatglm_model_c.modeling_chatglm import ChatGLMConfig
+tokenizer = ChatGLMTokenizer.from_pretrained(cache_dir)
+conf = ChatGLMConfig.from_pretrained(cache_dir)
+model = ChatGLMForConditionalGeneration.from_pretrained(cache_dir).cuda()
+
 model = model.eval()
 
 """Override Chatbot.postprocess"""

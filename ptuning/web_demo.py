@@ -72,15 +72,15 @@ def parse_text(text):
     return text
 
 
-def predict(input, chatbot, max_length, top_p, temperature, history, past_key_values):
+def predict(input, chatbot, max_length, top_p, temperature, history, past_kv_cache):
     chatbot.append((parse_text(input), ""))
-    for response, history, past_key_values in model.stream_chat(tokenizer, input, history, past_key_values=past_key_values,
+    for response, history, past_kv_cache in model.stream_chat(tokenizer, input, history, past_kv_cache=past_kv_cache,
                                                                 return_past_key_values=True,
                                                                 max_length=max_length, top_p=top_p,
                                                                 temperature=temperature):
         chatbot[-1] = (parse_text(input), parse_text(response))
 
-        yield chatbot, history, past_key_values
+        yield chatbot, history, past_kv_cache
 
 
 def reset_user_input():
@@ -109,13 +109,13 @@ with gr.Blocks() as demo:
             temperature = gr.Slider(0, 1, value=0.95, step=0.01, label="Temperature", interactive=True)
 
     history = gr.State([])
-    past_key_values = gr.State(None)
+    past_kv_cache = gr.State(None)
 
-    submitBtn.click(predict, [user_input, chatbot, max_length, top_p, temperature, history, past_key_values],
-                    [chatbot, history, past_key_values], show_progress=True)
+    submitBtn.click(predict, [user_input, chatbot, max_length, top_p, temperature, history, past_kv_cache],
+                    [chatbot, history, past_kv_cache], show_progress=True)
     submitBtn.click(reset_user_input, [], [user_input])
 
-    emptyBtn.click(reset_state, outputs=[chatbot, history, past_key_values], show_progress=True)
+    emptyBtn.click(reset_state, outputs=[chatbot, history, past_kv_cache], show_progress=True)
 
 
 def main():

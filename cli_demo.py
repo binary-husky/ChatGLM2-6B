@@ -30,7 +30,7 @@ def signal_handler(signal, frame):
 
 
 def main():
-    past_key_values, history = None, []
+    past_kv_cache, history = None, []
     global stop_stream
     print("欢迎使用 ChatGLM2-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序")
     while True:
@@ -38,14 +38,14 @@ def main():
         if query.strip() == "stop":
             break
         if query.strip() == "clear":
-            past_key_values, history = None, []
+            past_kv_cache, history = None, []
             os.system(clear_command)
             print("欢迎使用 ChatGLM2-6B 模型，输入内容即可进行对话，clear 清空对话历史，stop 终止程序")
             continue
         print("\nChatGLM：", end="")
         current_length = 0
-        for response, history, past_key_values in model.stream_chat(tokenizer, query, history=history,
-                                                                    past_key_values=past_key_values,
+        for response, history, past_kv_cache in model.stream_chat(tokenizer, query, history=history,
+                                                                    past_kv_cache=past_kv_cache,
                                                                     return_past_key_values=True):
             if stop_stream:
                 stop_stream = False

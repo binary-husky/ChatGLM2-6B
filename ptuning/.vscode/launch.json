@@ -1,0 +1,44 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/hmp/.local/bin/torchrun",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--standalone",                                     // 意义不明 ?
+                "--nnodes=1",                                       // 意义不明 ?
+                "--nproc-per-node=1",                               // 意义不明 ?
+                "main.py",
+                "--do_train",                                       // 训练模式
+                "--train_file", "AdvertiseGen/train.json",          // 训练集
+                "--validation_file", "AdvertiseGen/dev.json",       // 验证集
+                "--preprocessing_num_workers", "20",                // 预处理数据集线程数
+                "--prompt_column", "content",                       // prompt
+                "--response_column", "summary",                     // summary
+                "--overwrite_cache",                                // dataset overwrite_cache
+                "--model_name_or_path", 
+                "/home/hmp/ChatGLM2-6B/ptuning/real_chatglm_model", // 模型路径
+                "--output_dir", 
+                "output/adgen-chatglm2-6b-pt-128-2e-2",             // 输出路径
+                "--overwrite_output_dir",                           // 覆写输出路径
+                "--max_source_length", "64",                        // max_seq_length = data_args.max_source_length + data_args.max_target_length + 1
+                "--max_target_length", "128",                       // max_seq_length = data_args.max_source_length + data_args.max_target_length + 1
+                "--per_device_train_batch_size", "4",               // train batch size （每次.backward()使用的样本数量）
+                "--per_device_eval_batch_size", "4",                // eval batch size
+                "--gradient_accumulation_steps", "16",              // 累积梯度 （每次optimizer step之前，用 .backward() 累积多少次梯度）
+                "--predict_with_generate",                          // 计算给定预测结果和标签的Rouge和BLEU指标得分
+                "--max_steps", "3000",                              // 最大步数
+                "--logging_steps", "10",                            // 日志
+                "--save_steps", "1000",                             // 每 optimizer step 多少次，保存一次
+                "--learning_rate", "2e-2",                          // 学习率
+                "--pre_seq_len", "128",                             // ptuning continous prompt 占用多长的token
+                "--quantization_bit", "4"                           // 量化位数
+            ]
+        }
+    ]
+}
